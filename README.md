@@ -13,9 +13,7 @@
 
 ## 📌 What is MagicMonitor?
 
-MagicMonitor is a **production-grade, self-healing infrastructure monitoring system** deployed across **20+ critical Windows servers** in a **banking environment**. It monitors servers 24/7, automatically fixes common issues, and sends real-time alerts — all with **zero manual intervention**.
-
-Built to meet **RBI audit compliance** standards, it replaced manual checks and basic CloudWatch alarms with a fully automated, intelligent monitoring pipeline.
+MagicMonitor is a **production-grade, self-healing infrastructure monitoring system** deployed across **20+ critical Windows Ec2 instance** in a **banking environment**. It monitors servers 24/7, automatically fixes common issues, and sends real-time alerts — all with **zero manual intervention**.
 
 ---
 
@@ -38,8 +36,8 @@ Built to meet **RBI audit compliance** standards, it replaced manual checks and 
 
 ```mermaid
 graph TD
-    subgraph tier3["🏢 TIER 3: MASTER SERVER (JJIT Premises)"]
-        M["🖥️ MASTER<br/>13.232.119.177<br/>Alert Hub & Update Source"]
+    subgraph tier3["🏢 TIER 3: MASTER SERVER (On Premises)"]
+        M["🖥️ MASTER<br/>13.2**.**.***<br/>Alert Hub & Update Source"]
     end
     
     subgraph tier2["☁️ TIER 2: RELAY SERVERS (AWS)"]
@@ -93,8 +91,8 @@ graph TD
 
 | Tier | Component | Count | Location | Role |
 |------|-----------|-------|----------|------|
-| **Tier 3** | Master Server | 1 | JJIT Premises | Central alert hub, email distribution, update source |
-| **Tier 2** | Relay Servers | 2-3 | AWS (one per account) | Alert aggregation, update caching |
+| **Tier 3** | Master Server | 1 | On Premises | Central alert hub, email distribution, update source |
+| **Tier 2** | Relay Servers | 1 | AWS (one per account) | Alert aggregation, update caching |
 | **Tier 1** | Monitor Services | 20+ | Production servers | Real-time monitoring, auto-remediation |
 
 ### Port Map
@@ -125,12 +123,6 @@ Heartbeat every 20 seconds
 - **Updates Flow DOWN:** Master (Port 9090) → Relay → Relay Cache → Monitor (Port 9999)
 - **Heartbeat:** Monitor → Relay → Master (Every 20 seconds)
 
-**Why 3-Tier?**
-- ✅ **Fault Isolation** — AWS account boundaries contain failures
-- ✅ **Network Efficiency** — Relay caching reduces bandwidth by 20x
-- ✅ **Scalability** — Add servers without changing master config
-- ✅ **Centralized Control** — One master manages all 20+ servers
-
 ---
 
 ## 🛠️ Tech Stack
@@ -139,7 +131,7 @@ Heartbeat every 20 seconds
 |-------|------------|
 | **Backend** | C# .NET 6.0, Windows Services |
 | **Cloud** | AWS EC2, RDS, VPC (Multi-Account), ap-south-1 (Mumbai) |
-| **On-Premises** | Master Server at JJIT Premises |
+| **On-Premises** | Master Server at on Premises |
 | **Automation** | Windows Task Scheduler, PowerShell Scripting |
 | **Alerting** | SMTP Integration, HTML Email Templates |
 | **Reporting** | Automated Excel Generation |
@@ -160,11 +152,9 @@ Heartbeat every 20 seconds
 | 📊 **System Uptime** | 99%+ | Across all monitored servers |
 | 👥 **Manual Effort** | 80%+ reduction | Time saved on health checks |
 | 🖥️ **Coverage** | 20+ servers | Production infrastructure monitored 24/7 |
-| 🔄 **Update Speed** | 2-3 hours | Full fleet deployment time |
+| 🔄 **Update Speed** | 2-3 Minute | Full fleet deployment time |
 
 ### Key Performance Indicators
-
-
 ---
 
 ## 🔑 Core Features
@@ -175,7 +165,7 @@ Heartbeat every 20 seconds
 |--------|----------------|-----------|--------|
 | **CPU** | Every 40 seconds | >80% | Alert + Excel log |
 | **RAM** | Every 50 seconds | >85% | Alert + Excel log |
-| **Disk Space** | 2x daily (10:30 AM & 10:30 PM IST) | Critical: <5 GB<br/>Warning: <10 GB | Alert + possible auto-resize |
+| **Disk Space** | Interval (Hourly) | Critical: <5 GB<br/>Warning: <10 GB | Alert + possible auto-resize |
 | **Process Health** | Every 1 minute | Process stopped | Auto-restart + alert |
 | **Heartbeat** | Every 20 seconds | 2 missed (40 sec) | Server down alert |
 | **Patches** | Weekly (Saturdays 11:30 PM IST) | N/A | Compliance report |
@@ -189,13 +179,13 @@ Heartbeat every 20 seconds
 - Sends alerts whether restart succeeds or fails
 
 **RDS Storage Autoscaling:**
-- Runs daily at **2:30 AM IST** (off-peak hours)
+- Runs daily at **6:30 AM IST** (off-peak hours)
 - Auto-expands storage by **10 GiB** when approaching capacity
 - Respects configured maximum storage limits
 - Zero downtime during expansion
 
 **EC2 Disk Auto-Resize:**
-- Triggers on critical disk space condition (<5 GB)
+- Triggers on critical disk space condition (<2 GB)
 - Expands EBS volumes automatically via AWS API
 - Filesystem extended without server reboot
 
@@ -212,14 +202,14 @@ Administrator → Copies new build to C:\Deploy\Updater\Monitor
 Master Service → Auto-creates update.zip + version.json
 Master → Serves on port 9090
 
-**Stage 2: Relay Caching (T+0 to T+60 min)**
+**Stage 2: Relay Caching (T+0 to T+20 min)**
 
 Relay → Checks Master port 9090 every 60 minutes
 Relay → Downloads update.zip if newer version available
 Relay → Caches in cached_updates\monitor
 Relay → Serves to Monitors on port 9999
 
-**Stage 3: Monitor Installation (T+60 to T+180 min)**
+**Stage 3: Monitor Installation (T+0 to T+30 min)**
 
 Monitor → Checks Relay port 9999 every 60 minutes
 Monitor → Downloads update.zip to update_staging
@@ -243,8 +233,8 @@ Scheduled Task → Stops service → Copies files → Restarts service
 ### 📊 Reporting & Compliance
 
 **Automated Excel Reports:**
-- **CPU Logs:** Hourly with timestamp, CPU%, top 5 processes
-- **RAM Logs:** Hourly with timestamp, RAM%, top 5 processes
+- **CPU Logs:** Minutely with timestamp, CPU%, top 10 processes
+- **RAM Logs:** Minutely with timestamp, RAM%, top 10 processes
 - **Patch Reports:** Weekly with patch name, install date, KB number
 - **Storage:** Local at `C:\Deploy\Monitor\Reports\`
 - **Retention:** 90 days recommended
@@ -258,8 +248,6 @@ Scheduled Task → Stops service → Copies files → Restarts service
 - 90-day log retention at all tiers (Monitor, Relay, Master)
 - Weekly patch compliance tracking (Windows OS + RDS)
 - Complete audit trail of all alerts and automated actions
-- RBI audit-ready documentation
-
 ---
 
 ## 🧠 Technical Challenges Solved
@@ -278,7 +266,7 @@ Scheduled Task → Stops service → Copies files → Restarts service
 
 ### 4. Multi-Account AWS Isolation
 **Challenge:** Monitors in different AWS accounts need to reach same master.  
-**Solution:** One relay per AWS account + VPC peering to master.
+**Solution:** One relay per AWS account that will connect to master server via internet.
 
 ### 5. Zero-Downtime Updates
 **Challenge:** Can't take all 20+ servers offline simultaneously.  
@@ -321,10 +309,10 @@ Scheduled Task → Stops service → Copies files → Restarts service
 
 ## 🏆 What Makes It Special
 
-✅ **Banking-Grade Production System** — Live in banking environment with strict RBI compliance  
-✅ **Truly Zero-Touch** — From deployment to updates to remediation, no manual steps  
+✅ **Banking-Grade Production System** — Live in banking environment.  
+✅ **Truly Zero-Touch** — From deployment to updates to remediation  
 ✅ **Resource-Efficient** — Only ~150 MB RAM and <5% CPU per server  
-✅ **Hybrid Cloud** — Spans AWS ap-south-1 (Mumbai) and on-premises JJIT seamlessly  
+✅ **Hybrid Cloud** — Spans AWS ap-south-1 (Mumbai) and on-premises seamlessly  
 ✅ **Enterprise Security** — Least-privilege access, firewall-controlled ports, full audit logging  
 ✅ **Self-Healing** — 70% of issues resolved without human intervention  
 ✅ **Proven Scalability** — Currently 20+ servers, designed for 100+  
@@ -338,10 +326,10 @@ Scheduled Task → Stops service → Copies files → Restarts service
 `C#` `.NET 6` `Windows Services` `Multithreading` `Async/Await` `Logging`
 
 **Cloud & Infrastructure:**  
-`AWS EC2` `AWS RDS` `AWS VPC` `VPC Peering` `Security Groups` `Hybrid Cloud`
+`AWS EC2` `AWS RDS` `AWS VPC`  `Security Groups` `Hybrid Cloud`
 
 **DevOps & Automation:**  
-`PowerShell` `Windows Task Scheduler` `Service Management` `Automation` `CI/CD Concepts`
+`PowerShell` `Windows Task Scheduler` `Service Management` `Automation` 
 
 **System Design:**  
 `Distributed Systems` `3-Tier Architecture` `Event-Driven Design` `Fault Tolerance` `Scalability`
@@ -364,7 +352,7 @@ Scheduled Task → Stops service → Copies files → Restarts service
 
 ### Installation Steps
 
-**1. Master Server (JJIT Premises)**
+**1. Master Server (AWS Premises)**
 ```powershell
 # Install service
 sc.exe create "MasterMonitorService" binPath= "C:\Deploy\Master\MasterService.exe" start= auto
@@ -411,13 +399,13 @@ Register-ScheduledTask -TaskName "ApplyMonitorUpdate" -Action $Action -Principal
 ```json
 {
   "ServerName": "PROD-APP-01",
-  "RelayServerIP": "10.0.1.50",
+  "RelayServerIP": "10.*.1**",
   "RelayAlertPort": 5050,
   "RelayUpdatePort": 9999,
   "Thresholds": {
     "CpuPercent": 80,
     "RamPercent": 85,
-    "DiskCriticalGB": 5,
+    "DiskCriticalGB": 2,
     "DiskWarningGB": 10
   },
   "ImportantProcesses": [
@@ -426,11 +414,11 @@ Register-ScheduledTask -TaskName "ApplyMonitorUpdate" -Action $Action -Principal
     "APIGateway"
   ],
   "Schedules": {
-    "DiskCheckTimes": ["10:30", "22:30"],
+    "DiskCheckTimes": [ "Interval" ],
     "PatchCheckDay": "Saturday",
     "PatchCheckTime": "23:30",
-    "DailyReportTime": "18:00",
-    "RdsAutoscaleTime": "02:30"
+    "DailyReportTime": "10:00",
+    "RdsAutoscaleTime": "06:30"
   }
 }
 ```
@@ -483,10 +471,6 @@ Get-ChildItem "C:\Deploy\Monitor\update_staging\"
 
 ---
 
-## 📄 License
-
-This is a proprietary enterprise monitoring system built for production banking infrastructure.
-
 ---
 
 *Built for reliability. Designed for scale. Proven in production.* 🚀
@@ -501,10 +485,3 @@ This is a proprietary enterprise monitoring system built for production banking 
 - ✅ **Zero-touch updates** across 20+ servers in 2-3 hours
 - ✅ **Banking-grade compliance** with RBI audit-ready documentation
 - ✅ **99%+ uptime** with <5% CPU and ~150MB RAM overhead per server
-
-## 🏗️ System Architecture
-
-![MagicMonitor Architecture](docs/images/architecture-diagram.png)
-
-**3-Tier Distributed Design for Scalability and Fault Isolation**
-
