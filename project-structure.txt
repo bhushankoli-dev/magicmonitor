@@ -1,0 +1,48 @@
+MagicMonitor — Enterprise Infrastructure Monitoring System
+==========================================================
+
+📁 MasterServer/
+   ├── 📄 MasterService.cs         → Central alert collection & distribution
+   ├── 📄 EmailEngine.cs           → HTML email formatting & SMTP delivery
+   ├── 📄 UpdateDistributor.cs     → Serves update packages to relay servers
+   ├── 📄 AlertQueue.cs            → Queues and processes incoming alerts
+   └── 📄 appsettings.json         → Master configuration (never committed)
+
+📁 RelayServer/
+   ├── 📄 RelayService.cs          → Alert aggregation from monitors
+   ├── 📄 UpdateCache.cs           → Caches updates from master for monitors
+   ├── 📄 RDSManager.cs            → RDS storage autoscaling logic
+   ├── 📄 AlertForwarder.cs        → Forwards alerts to master server
+   └── 📄 appsettings.json         → Relay configuration (never committed)
+
+📁 MonitorService/
+   ├── 📄 CPUMonitor.cs            → CPU checks every 40 seconds
+   ├── 📄 RAMMonitor.cs            → RAM checks every 50 seconds
+   ├── 📄 DiskMonitor.cs           → Disk checks twice daily
+   ├── 📄 ProcessMonitor.cs        → Process health & auto-restart logic
+   ├── 📄 HeartbeatSender.cs       → Heartbeat every 20 seconds
+   ├── 📄 PatchTracker.cs          → Weekly OS & RDS patch tracking
+   ├── 📄 UpdateClient.cs          → Hourly update check & installation
+   ├── 📄 ReportGenerator.cs       → Daily Excel reports & email summaries
+   └── 📄 appsettings.json         → Instance config (never overwritten)
+
+📁 Shared/
+   ├── 📄 AlertModels.cs           → Shared alert data structures
+   ├── 📄 NetworkClient.cs         → TCP communication utilities
+   └── 📄 Logger.cs                → Centralized logging utilities
+
+📁 Deployment/
+   ├── 📄 install-monitor.ps1      → PowerShell install script
+   ├── 📄 apply_update.cmd         → Update application script
+   └── 📄 appsettings.sample.json  → Safe configuration template
+
+📄 README.md                       → Full project documentation
+📄 project-structure.txt           → This file
+
+==========================================================
+Architecture: 3-Tier (Master → Relay → Monitor)
+Language:     C# .NET 6.0
+Platform:     Windows Services on AWS EC2
+Scale:        20+ production servers
+Environment:  Banking — RBI Compliant
+==========================================================
